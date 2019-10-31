@@ -1,53 +1,12 @@
-buildscript {
-    ext.kotlin_version = '1.3.50'
-    repositories {
-        google()
-        jcenter()
-
-    }
-    dependencies {
-        classpath 'com.android.tools.build:gradle:3.6.0-beta01'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-
-        // NOTE: Do not place your application dependencies here; they belong
-        // in the individual module build.gradle files
-    }
-}
-
 plugins {
     id 'maven-publish'
     id 'com.android.library'
     id 'kotlin-android'
-    id 'kotlin-android-extensions'
 }
 
-group 'com.programmersbox.loged'
-archivesBaseName = 'loged'
-version '0.1.0'
-
-repositories {
-    mavenCentral()
-}
-
-publishing {
-    repositories {
-        maven {
-            name = "Github"
-            url = uri("https://maven.pkg.github.com/jakepurple13/Logger")
-            credentials {
-                username = findProperty("github.username")
-                password = findProperty("github.token")
-            }
-        }
-    }
-    publications {
-        register("jar", MavenPublication) {
-            //from(components["java"])
-            pom {
-                url.set("https://github.com/jakepurple13/Logger.git")
-            }
-        }
-    }
+task sourceJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    archiveClassifier.set("sources")
 }
 
 android {
@@ -68,6 +27,28 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    publishing {
+        repositories {
+            maven {
+                name = "Github"
+                url = uri("https://maven.pkg.github.com/jakepurple13/Logger")
+                credentials {
+                    username = findProperty("github.username")
+                    password = findProperty("github.token") ?: System.getenv("GPR_TOKEN")
+                }
+            }
+        }
+        publications {
+            gpr(MavenPublication) {
+                groupId "com.programmersbox.loged"
+                artifactId "loged"
+                version "0.2.2"
+                artifact(sourceJar)
+                artifact("$buildDir/outputs/aar/loged-debug.aar")
+            }
         }
     }
 
