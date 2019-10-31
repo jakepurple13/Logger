@@ -6,6 +6,12 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 
+
+/**
+ * Finds similarities between two lists based on a predicate
+ */
+fun <T, U> Collection<T>.intersect(uList: List<U>, filterPredicate: (T, U) -> Boolean) = filter { m -> uList.any { filterPredicate(m, it) } }
+
 /**
  * Returns [this] if not null, otherwise return [nullBlock]
  */
