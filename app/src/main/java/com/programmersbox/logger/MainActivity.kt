@@ -3,6 +3,7 @@ package com.programmersbox.logger
 import android.annotation.SuppressLint
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.programmersbox.loged.BiometricBuilder
 import kotlinx.android.synthetic.main.activity_main.*
@@ -28,6 +29,10 @@ class MainActivity : AppCompatActivity() {
 
                     authFailed {
                         button.text = "Failed"
+                    }
+
+                    error {
+                        Log.d("Tag", "${it.num}: ${it.reason}")
                     }
 
                     promptInfo {

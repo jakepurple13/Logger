@@ -4,6 +4,7 @@ import android.Manifest
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.annotation.RequiresPermission
+import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.fragment.app.FragmentActivity
 import java.util.concurrent.Executors
@@ -46,6 +47,12 @@ class BiometricBuilder(private var fragmentActivity: FragmentActivity) {
             .build()
     }
 
+    enum class BiometricErrorType(var num: Int, var reason: String) {
+        NO_HARDWARE(BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE, "No biometric features available on this device."),
+        HW_UNAVAILABLE(BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE, "Biometric features are currently unavailable."),
+        NONE_ENROLLED(BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED, "The user hasn't associated any biometric credentials with their account.")
+    }
+
     companion object {
         @RequiresApi(Build.VERSION_CODES.P)
         fun biometricBuilder(fragmentActivity: FragmentActivity, block: BiometricBuilder.() -> Unit) =
@@ -56,6 +63,7 @@ class BiometricBuilder(private var fragmentActivity: FragmentActivity) {
     private var onAuthFailed: () -> Unit = { }
     private var onAuthError: (errorCode: Int, errorMessage: String) -> Unit = { _, _ -> }
     private var onAuthSuccess: (result: BiometricPrompt.AuthenticationResult) -> Unit = { _ -> }
+    private var onError: (error: BiometricErrorType) -> Unit = { System.err.println("$it: ${it.reason}") }
 
     fun authFailed(block: () -> Unit) {
         onAuthFailed = block
@@ -69,6 +77,10 @@ class BiometricBuilder(private var fragmentActivity: FragmentActivity) {
         onAuthSuccess = block
     }
 
+    fun error(block: (BiometricErrorType) -> Unit) {
+        onError = block
+    }
+
     fun promptInfo(block: BiometricPromptBuilder.() -> Unit) {
         biometricPromptInfo = BiometricPromptBuilder.biometricPromptBuilder(block)
     }
@@ -76,29 +88,30 @@ class BiometricBuilder(private var fragmentActivity: FragmentActivity) {
     @RequiresApi(Build.VERSION_CODES.P)
     @RequiresPermission(allOf = [Manifest.permission.USE_BIOMETRIC])
     private fun build() {
-        biometricPromptInfo?.let {
-            val biometricPrompt =
-                BiometricPrompt(fragmentActivity, Executors.newSingleThreadExecutor(), object : BiometricPrompt.AuthenticationCallback() {
-                    override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                        super.onAuthenticationError(errorCode, errString)
-                        fragmentActivity.runOnUiThread {
-                            onAuthError(errorCode, errString.toString())
+        when (BiometricManager.from(fragmentActivity).canAuthenticate()) {
+            BiometricManager.BIOMETRIC_SUCCESS -> biometricPromptInfo?.let {
+                val biometricPrompt =
+                    BiometricPrompt(fragmentActivity, Executors.newSingleThreadExecutor(), object : BiometricPrompt.AuthenticationCallback() {
+                        override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                            super.onAuthenticationError(errorCode, errString)
+                            fragmentActivity.runOnUiThread { onAuthError(errorCode, errString.toString()) }
                         }
-                    }
 
-                    override fun onAuthenticationFailed() {
-                        super.onAuthenticationFailed()
-                        fragmentActivity.runOnUiThread(onAuthFailed)
-                    }
-
-                    override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                        super.onAuthenticationSucceeded(result)
-                        fragmentActivity.runOnUiThread {
-                            onAuthSuccess(result)
+                        override fun onAuthenticationFailed() {
+                            super.onAuthenticationFailed()
+                            fragmentActivity.runOnUiThread(onAuthFailed)
                         }
-                    }
-                })
-            biometricPrompt.authenticate(it)
+
+                        override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                            super.onAuthenticationSucceeded(result)
+                            fragmentActivity.runOnUiThread { onAuthSuccess(result) }
+                        }
+                    })
+                biometricPrompt.authenticate(it)
+            }
+            BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE -> onError(BiometricErrorType.NO_HARDWARE)
+            BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> onError(BiometricErrorType.HW_UNAVAILABLE)
+            BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> onError(BiometricErrorType.NONE_ENROLLED)
         }
     }
 
