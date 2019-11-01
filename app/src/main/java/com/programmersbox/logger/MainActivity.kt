@@ -39,6 +39,7 @@ class MainActivity : AppCompatActivity() {
                         title = "Testing"
                         subtitle = "Tester"
                         description = "Test"
+                        negativeButton = null
                         confirmationRequired = true
                         deviceCredentialAllowed = true
                     }

@@ -55,6 +55,7 @@ class BiometricBuilder(private var fragmentActivity: FragmentActivity) {
 
     companion object {
         @RequiresApi(Build.VERSION_CODES.P)
+        @RequiresPermission(allOf = [Manifest.permission.USE_BIOMETRIC])
         fun biometricBuilder(fragmentActivity: FragmentActivity, block: BiometricBuilder.() -> Unit) =
             BiometricBuilder(fragmentActivity).apply(block).build()
     }
@@ -85,8 +86,6 @@ class BiometricBuilder(private var fragmentActivity: FragmentActivity) {
         biometricPromptInfo = BiometricPromptBuilder.biometricPromptBuilder(block)
     }
 
-    @RequiresApi(Build.VERSION_CODES.P)
-    @RequiresPermission(allOf = [Manifest.permission.USE_BIOMETRIC])
     private fun build() {
         when (BiometricManager.from(fragmentActivity).canAuthenticate()) {
             BiometricManager.BIOMETRIC_SUCCESS -> biometricPromptInfo?.let {
@@ -114,5 +113,4 @@ class BiometricBuilder(private var fragmentActivity: FragmentActivity) {
             BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> onError(BiometricErrorType.NONE_ENROLLED)
         }
     }
-
 }
