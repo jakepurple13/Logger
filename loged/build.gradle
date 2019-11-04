@@ -45,7 +45,7 @@ android {
             gpr(MavenPublication) {
                 groupId "com.programmersbox.loged"
                 artifactId "loged"
-                version "0.2.8"
+                version "0.3.1"
                 artifact(sourceJar)
                 artifact("$buildDir/outputs/aar/loged-debug.aar")
             }
@@ -61,4 +61,6 @@ dependencies {
     implementation 'androidx.core:core-ktx:1.1.0'
     implementation 'com.google.code.gson:gson:2.8.6'
     implementation 'androidx.biometric:biometric:1.0.0-rc02'
+    implementation 'androidx.recyclerview:recyclerview:1.0.0'
+    implementation 'com.google.android.material:material:1.0.0'
 }
