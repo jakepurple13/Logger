@@ -45,7 +45,7 @@ android {
             gpr(MavenPublication) {
                 groupId "com.programmersbox.loged"
                 artifactId "loged"
-                version "0.3.1"
+                version "0.3.2"
                 artifact(sourceJar)
                 artifact("$buildDir/outputs/aar/loged-debug.aar")
             }
