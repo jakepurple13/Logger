@@ -3,13 +3,8 @@ package com.programmersbox.loged
 import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.Color
-import android.graphics.drawable.Drawable
-import android.view.View
-import android.widget.TextView
-import androidx.annotation.DrawableRes
+import android.os.Build
 import androidx.annotation.IntRange
-import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.snackbar.Snackbar
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
@@ -87,3 +82,13 @@ fun Random.nextColor(
     @IntRange(from = 0, to = 255) green: Int = nextInt(0, 255),
     @IntRange(from = 0, to = 255) blue: Int = nextInt(0, 255)
 ): Int = Color.argb(alpha, red, green, blue)
+
+data class DeviceInfo(val board: String = Build.BOARD,
+                      val brand: String = Build.BRAND,
+                      val device: String = Build.DEVICE,
+                      val manufacturer: String = Build.MANUFACTURER,
+                      val model: String = Build.MODEL,
+                      val product: String = Build.PRODUCT,
+                      val sdkInt: Int = Build.VERSION.SDK_INT,
+                      val versionCode: String = Build.VERSION_CODES::class.java.fields[Build.VERSION.SDK_INT].name,
+                      val versionNumber: String = Build.VERSION.RELEASE)

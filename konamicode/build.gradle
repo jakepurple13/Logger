@@ -1,6 +1,14 @@
-apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
+plugins {
+    id 'maven-publish'
+    id 'com.android.library'
+    id 'kotlin-android'
+    id 'kotlin-android-extensions'
+}
+
+task sourceJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    archiveClassifier.set("sources")
+}
 
 android {
     compileSdkVersion 29
@@ -15,6 +23,27 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    publishing {
+        repositories {
+            maven {
+                name = "Github"
+                url = uri("https://maven.pkg.github.com/jakepurple13/Logger")
+                credentials {
+                    username = findProperty("github.username")
+                    password = findProperty("github.token") ?: System.getenv("GPR_TOKEN")
+                }
+            }
+        }
+        publications {
+            gpr(MavenPublication) {
+                groupId "com.programmersbox.konami"
+                artifactId "konami-code"
+                version "0.3.2"
+                artifact(sourceJar)
+                artifact("$buildDir/outputs/aar/konamicode-debug.aar")
+            }
         }
     }
 }
